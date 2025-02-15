@@ -19,33 +19,24 @@ markup.add(button)
 def is_valid_name(text):
     pattern = r'^[А-Яа-яЇїІіЄєҐґ]{2,}$'
     return bool(re.match(pattern, text))
-def firts_name(message):
+def firts_last_name(message):
     id = message.from_user.id
     text = message.text
-    if is_valid_name(text):
+    parts = text.split(maxsplit=1)
+    print(f"{parts}")
+    if is_valid_name(parts[0]) and is_valid_name(parts[1]):
         with conn_tg.cursor() as curs:
-            curs.execute("UPDATE user SET first_name=%s WHERE user_id=%s", (text, id))
+            curs.execute("INSERT INTO user (user_id, first_name, last_name) VALUES (%s, %s, %s)",(id,parts[0],parts[1]))
             conn_tg.commit()
-            curs.execute(f'SELECT * FROM  user WHERE user_id=%s', (id,))
-            user_data = curs.fetchall()
-        if not user_data[0][3]:
-            my_bot.send_message(message.chat.id, "Введіть фамілію")
-            my_bot.register_next_step_handler(message, last_name)
+            my_bot.send_message(message.chat.id, "Вітаю ви успішно зареєструвалися")
     else:
-        my_bot.send_message(message.chat.id, "Ви ввели неправильне ім'я")
-        my_bot.register_next_step_handler(message, firts_name)
+        my_bot.send_message(message.chat.id, "Ви ввели неправильне ім'я або фамілю")
+        my_bot.register_next_step_handler(message, firts_last_name)
 
-def last_name(message):
-    id = message.from_user.id
-    text = message.text
-    if is_valid_name(text):
-        with conn_tg.cursor() as curs:
-            curs.execute("UPDATE user SET last_name=%s WHERE user_id=%s", (text, id))
-            conn_tg.commit()
-            my_bot.send_message(message.chat.id, "Ви успішно зареєструвалися")
-    else:
-        my_bot.send_message(message.chat.id, "Ви ввели неправильне прізвище")
-        my_bot.register_next_step_handler(message, last_name)
+@my_bot.message_handler(commands=['admin'])
+def admin(message):
+    pass
+
 
 @my_bot.message_handler(commands=['start'])
 def start(message):
@@ -59,11 +50,8 @@ def callback_query(call):
             curs.execute(f'SELECT * FROM  user WHERE user_id=%s', (id,))
             user_data = curs.fetchall()
         if not user_data:
-            with conn_tg.cursor() as curs:
-                curs.execute("INSERT INTO user(user_id) VALUES (%s)",(id,))
-                conn_tg.commit()
-            my_bot.send_message(call.message.chat.id, "Введіть ім'я")
-            my_bot.register_next_step_handler(call.message, firts_name)
+            my_bot.send_message(call.message.chat.id, "Введіть ім'я та фамілію")
+            my_bot.register_next_step_handler(call.message, firts_last_name)
 
 
 
