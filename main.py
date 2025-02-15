@@ -23,7 +23,6 @@ def firts_last_name(message):
     id = message.from_user.id
     text = message.text
     parts = text.split(maxsplit=1)
-    print(f"{parts}")
     if is_valid_name(parts[0]) and is_valid_name(parts[1]):
         with conn_tg.cursor() as curs:
             curs.execute("INSERT INTO user (user_id, first_name, last_name) VALUES (%s, %s, %s)",(id,parts[0],parts[1]))
