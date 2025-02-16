@@ -1,6 +1,8 @@
 import mysql.connector
 import telebot
 import re
+from telebot.types import BotCommand, BotCommandScopeDefault
+
 
 my_bot = telebot.TeleBot('5116218178:AAHThqvo_5BpxJv8L_kpgrM_a7LQPZQEfI4')
 
@@ -16,6 +18,24 @@ conn_tg = mysql.connector.connect(**config_tg)
 markup = telebot.types.InlineKeyboardMarkup()
 button = telebot.types.InlineKeyboardButton('Реєстрація', callback_data='register')
 markup.add(button)
+
+def set_bot_commands():
+    user_commands = [
+        BotCommand("text", "text"),
+        BotCommand("help", "Допомога"),
+        BotCommand("about", "Про бота")
+    ]
+    my_bot.set_my_commands(user_commands, scope=BotCommandScopeDefault())
+    super_admin_id = [534670150,565948862]
+    super_admin = [
+        BotCommand("admin", "Видавваня адмінки"),
+        BotCommand("help", "Допомога"),
+        BotCommand("about", "Про бота")
+    ]
+    #for admin_id in super_admin_id:
+        #my_bot.set_my_commands(super_admin, scope=BotCommandScopeUser(admin_id))
+
+set_bot_commands()
 def is_valid_name(text):
     pattern = r'^[А-Яа-яЇїІіЄєҐґ]{2,}$'
     return bool(re.match(pattern, text))
@@ -32,10 +52,9 @@ def firts_last_name(message):
         my_bot.send_message(message.chat.id, "Ви ввели неправильне ім'я або фамілю")
         my_bot.register_next_step_handler(message, firts_last_name)
 
-@my_bot.message_handler(commands=['admin'])
+@my_bot.message_handler(commands=['menu'])
 def admin(message):
     pass
-
 
 @my_bot.message_handler(commands=['start'])
 def start(message):
@@ -51,11 +70,12 @@ def callback_query(call):
         if not user_data:
             my_bot.send_message(call.message.chat.id, "Введіть ім'я та фамілію")
             my_bot.register_next_step_handler(call.message, firts_last_name)
+        else:
+            my_bot.send_message(call.message.chat.id, "Ви вже зареєстровані")
 
 
 
 
 
 my_bot.polling()
-
 
